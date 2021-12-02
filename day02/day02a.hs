@@ -7,15 +7,15 @@ stringToInt = read
 distanceToInt :: (String, String) -> (String, Int)
 distanceToInt (direction, distance) = (direction, stringToInt distance)
 
-calcDistance :: (Int, Int) -> (String, Int) -> (Int, Int)
-calcDistance (h, d) (dir, dist) =
-    case dir of "forward" -> (h + dist, d)
-                "up"      -> (h, d - dist)
-                "down"    -> (h, d + dist)
+move :: (Int, Int) -> (String, Int) -> (Int, Int)
+move (horizontal, depth) (direction, distance) =
+    case direction of "forward" -> (horizontal + distance, depth)
+                      "up"      -> (horizontal, depth - distance)
+                      "down"    -> (horizontal, depth + distance)
 
 main = do
     contents <- getContents
     let instructions = map distanceToInt . map toPair . map words . lines $ contents
-    let (horizontal, depth) = foldl calcDistance (0, 0) instructions
+    let (horizontal, depth) = foldl move (0, 0) $ instructions
     let result = horizontal * depth
     putStr (show result)
