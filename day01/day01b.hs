@@ -8,12 +8,11 @@ countDepths (w:x:y:z:xs) = count sumA sumB + countDepths (x:y:z:xs)
           sumB = sum [x, y, z]
           count a b = case a >= b of True -> 0
                                      False -> 1
-
-toInt :: String -> Int
-toInt = read
+stringToInt :: String -> Int
+stringToInt = read
 
 main = do
     contents <- getContents
-    let depths = map (toInt) (lines contents)
+    let depths = map stringToInt . lines $ contents
     let total = countDepths depths
     putStr (show total)
