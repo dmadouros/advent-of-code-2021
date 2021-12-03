@@ -1,29 +1,28 @@
 import Data.Char
+import Data.List
+import Data.Function
 
-mostCommonBit :: String -> Char
-mostCommonBit xs = if count1 > count0 then '1' else '0'
-    where count1 = length . filter (== '1') $ xs
-          count0 = length . filter (== '0') $ xs
+type Binary = [Char]
+type Bit = Char
+type Bits = [Bit]
 
-binaryToInt :: String -> Int
+mostCommonBit :: Bits -> Bit
+mostCommonBit = head . maximumBy (compare `on` length) . pairToList . partition (== '0')
+    where pairToList = (\(x, y) -> [x, y])
+
+binaryToInt :: Binary -> Int
 binaryToInt = foldl (\acc x -> acc * 2 + digitToInt x) 0
 
-extractBits :: ([String], [String]) -> [String]
-extractBits (hs, []) = hs
-extractBits (hs, ts) = extractBits (hs ++ [heads], tails)
-    where heads = map head ts
-          tails = filter (/= "") . map tail $ ts
+complement :: Binary -> Binary
+complement = map (\x -> if x == '1' then '0' else '1')
 
-compliment :: String -> String
-compliment = map (\x -> if x == '1' then '0' else '1')
+extractBits = transpose
 
 main = do
     contents <- getContents
     let diagnostics = lines $ contents
-    let gammaBin = map mostCommonBit $ extractBits ([], diagnostics)
-    let epsilonBin = compliment $ gammaBin
-    let gamma = binaryToInt $ gammaBin
-    let epsilon = binaryToInt $ epsilonBin
-    let result = gamma * epsilon
+    let gammaBin = map mostCommonBit . extractBits $ diagnostics
+    let epsilonBin = complement $ gammaBin
+    let result = product . map binaryToInt $ [gammaBin, epsilonBin]
 
     putStr (show result)

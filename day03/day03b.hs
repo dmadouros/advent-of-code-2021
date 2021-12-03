@@ -1,42 +1,45 @@
 import Data.Char
+import Data.List
+import Data.Function
 
-mostCommonBit :: String -> Char
-mostCommonBit xs = if count1 >= count0 then '1' else '0'
-    where count1 = length . filter (== '1') $ xs
-          count0 = length . filter (== '0') $ xs
+type Binary = [Char]
+type Bit = Char
+type Bits = [Bit]
 
-leastCommonBit :: String -> Char
-leastCommonBit xs = if count1 < count0 then '1' else '0'
-    where count1 = length . filter (== '1') $ xs
-          count0 = length . filter (== '0') $ xs
+commonBitWith :: 
+    ((Bits -> Bits -> Ordering) -> [Bits] -> Bits)
+    -> (Bits -> Int) 
+    -> Bits 
+    -> Bit
+commonBitWith f g = head . f (compare `on` g) . pairToList . partition (== '0')
+    where pairToList = (\(x, y) -> [x, y])
 
-binaryToInt :: String -> Int
+mostCommonBitWith :: Bits -> Bit
+mostCommonBitWith = commonBitWith maximumBy length
+
+leastCommonBitWith :: Bits -> Bit
+leastCommonBitWith = commonBitWith minimumBy length
+
+binaryToInt :: Binary -> Int
 binaryToInt = foldl (\acc x -> acc * 2 + digitToInt x) 0
 
-extractBits :: ([String], [String]) -> [String]
-extractBits (hs, []) = hs
-extractBits (hs, ts) = extractBits (hs ++ [heads], tails)
-    where heads = map head ts
-          tails = filter (/= "") . map tail $ ts
-
-calculateRating :: (String -> Char) -> Int -> [String] -> String
-calculateRating f _ [x] = x
-calculateRating f idx xs = calculateRating f (idx + 1) remainder
-    where targets = map f $ extractBits ([], xs)
+calculateRatingBy :: (Bits -> Bit) -> Int -> [Binary] -> Int
+calculateRatingBy f _ [x] = binaryToInt x
+calculateRatingBy f idx xs = calculateRatingBy f (idx + 1) remainder
+    where extractBits = transpose
+          targets = map f $ extractBits xs
           target = targets !! idx
           remainder = filter ((== target) . (!! idx)) $ xs
 
-calculateO2Rating :: [String] -> String
-calculateO2Rating = calculateRating mostCommonBit 0
+calculateO2Rating :: [Binary] -> Int
+calculateO2Rating = calculateRatingBy mostCommonBitWith 0
 
-calculateCo2Rating :: [String] -> String
-calculateCo2Rating = calculateRating leastCommonBit 0
+calculateCo2Rating :: [Binary] -> Int
+calculateCo2Rating = calculateRatingBy leastCommonBitWith 0
 
 main = do
     contents <- getContents
     let diagnostics = lines $ contents
-    let o2GeneratorRating = binaryToInt . calculateO2Rating $ diagnostics
-    let co2ScrubberRating = binaryToInt . calculateCo2Rating $ diagnostics
-    let result = co2ScrubberRating * o2GeneratorRating
+    let result = product $ [calculateO2Rating, calculateCo2Rating] <*> pure diagnostics
 
     putStr (show result)
