@@ -1,4 +1,4 @@
-sandbox.hs
+/learning
 *.o
 *.hi
 .DS_Store
